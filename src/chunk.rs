@@ -7,7 +7,7 @@ use std::{
 
 use crate::{chunk_type::ChunkType, Error};
 #[derive(Debug, Clone)]
-struct Chunk {
+pub struct Chunk {
     data_length: [u8; 4],
     chunk_type: ChunkType,
     data: Vec<u8>,
@@ -19,7 +19,7 @@ impl Termination for Chunk {
     }
 }
 impl Chunk {
-    fn new(chunk_type: ChunkType, data: &[u8]) -> Self {
+    pub fn new(chunk_type: ChunkType, data: &[u8]) -> Self {
         let data_length = data.len() as u32;
         let crc = Chunk::calculate_crc(&chunk_type.bytes(), &data);
         Chunk {
@@ -29,24 +29,32 @@ impl Chunk {
             crc,
         }
     }
-    fn crc(&self) -> u32 {
+    pub fn crc(&self) -> u32 {
         u32::from_be_bytes(self.crc)
     }
-    fn length(&self) -> u32 {
+    pub fn length(&self) -> u32 {
         self.data.len() as u32
     }
-    fn chunk_type(&self) -> &ChunkType {
+    pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
     }
-    fn data_as_string(&self) -> Result<String, Error> {
+    pub fn data_as_string(&self) -> Result<String, Error> {
         let string = String::from_utf8(self.data.iter().cloned().collect())?;
         Ok(string)
     }
-
-    fn calculate_crc(chunk: &[u8], data: &[u8]) -> [u8; 4] {
+    pub fn calculate_crc(chunk: &[u8], data: &[u8]) -> [u8; 4] {
         let data_check: Vec<u8> = chunk.iter().chain(data.iter()).copied().collect();
         let crc = Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
         crc.checksum(&data_check).to_be_bytes()
+    }
+    pub fn as_bytes(&self) -> Vec<u8> {
+        self.data_length
+            .iter()
+            .chain(self.chunk_type.bytes().iter())
+            .chain(self.data.iter())
+            .chain(self.crc.iter())
+            .cloned()
+            .collect()
     }
 }
 impl Display for Chunk {

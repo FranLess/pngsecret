@@ -1,7 +1,6 @@
 use std::{
     convert::TryFrom,
-    fmt::{self, Debug, Display},
-    io::Read,
+    fmt::{Debug, Display},
     str::FromStr,
 };
 #[derive(Clone)]
@@ -12,6 +11,53 @@ pub struct ChunkType {
     safe_to_copy: u8,
 }
 
+impl ChunkType {
+    pub fn new(ancilliary: u8, private: u8, reserved: u8, safe_to_copy: u8) -> Self {
+        ChunkType {
+            ancilliary,
+            private,
+            reserved,
+            safe_to_copy,
+        }
+    }
+    pub fn bytes(&self) -> [u8; 4] {
+        [
+            self.ancilliary,
+            self.private,
+            self.reserved,
+            self.safe_to_copy,
+        ]
+    }
+    pub fn is_critical(&self) -> bool {
+        self.ancilliary.is_ascii_uppercase()
+    }
+    pub fn is_public(&self) -> bool {
+        self.private.is_ascii_uppercase()
+    }
+    pub fn is_reserved_bit_valid(&self) -> bool {
+        self.reserved.is_ascii_uppercase()
+    }
+    pub fn is_valid(&self) -> bool {
+        if ![
+            self.ancilliary,
+            self.private,
+            self.reserved,
+            self.safe_to_copy,
+        ]
+        .iter()
+        .all(|i| i.is_ascii_alphabetic())
+        {
+            false
+        } else if self.reserved.is_ascii_lowercase() {
+            false
+        } else {
+            true
+        }
+    }
+    pub fn is_safe_to_copy(&self) -> bool {
+        self.safe_to_copy.is_ascii_lowercase()
+    }
+}
 impl Debug for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChunkType")
@@ -88,40 +134,6 @@ impl FromStr for ChunkType {
         }
     }
 }
-impl ChunkType {
-    pub fn new(ancilliary: u8, private: u8, reserved: u8, safe_to_copy: u8) -> Self {
-        ChunkType {
-            ancilliary,
-            private,
-            reserved,
-            safe_to_copy,
-        }
-    }
-    pub fn bytes(&self) -> [u8; 4] {
-        [
-            self.ancilliary,
-            self.private,
-            self.reserved,
-            self.safe_to_copy,
-        ]
-    }
-    pub fn is_critical(&self) -> bool {
-        self.ancilliary.is_ascii_uppercase()
-    }
-    pub fn is_public(&self) -> bool {
-        self.private.is_ascii_uppercase()
-    }
-    pub fn is_reserved_bit_valid(&self) -> bool {
-        self.reserved.is_ascii_uppercase()
-    }
-    pub fn is_valid(&self) -> bool {
-        self.is_reserved_bit_valid()
-    }
-    pub fn is_safe_to_copy(&self) -> bool {
-        self.safe_to_copy.is_ascii_lowercase()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
