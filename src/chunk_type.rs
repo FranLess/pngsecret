@@ -1,18 +1,25 @@
-use std::{convert::TryFrom, fmt::{self, Debug, Display}, io::Read, str::FromStr};
+use std::{
+    convert::TryFrom,
+    fmt::{self, Debug, Display},
+    io::Read,
+    str::FromStr,
+};
+#[derive(Clone)]
 pub struct ChunkType {
     ancilliary: u8,
     private: u8,
     reserved: u8,
     safe_to_copy: u8,
 }
+
 impl Debug for ChunkType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ChunkType")
-        .field("ancilliary", &self.ancilliary)
-        .field("private", &self.private)
-        .field("reserved", &self.reserved)
-        .field("safe_to_copy", &self.safe_to_copy)
-        .finish()
+            .field("ancilliary", &self.ancilliary)
+            .field("private", &self.private)
+            .field("reserved", &self.reserved)
+            .field("safe_to_copy", &self.safe_to_copy)
+            .finish()
     }
 }
 impl Display for ChunkType {
@@ -82,28 +89,35 @@ impl FromStr for ChunkType {
     }
 }
 impl ChunkType {
-    fn bytes(&self) -> [u8; 4] {
+    pub fn new(ancilliary: u8, private: u8, reserved: u8, safe_to_copy: u8) -> Self {
+        ChunkType {
+            ancilliary,
+            private,
+            reserved,
+            safe_to_copy,
+        }
+    }
+    pub fn bytes(&self) -> [u8; 4] {
         [
-            self.ancilliary ,
-            self.private ,
-            self.reserved ,
-            self.safe_to_copy ,
+            self.ancilliary,
+            self.private,
+            self.reserved,
+            self.safe_to_copy,
         ]
     }
-    fn is_critical(&self) -> bool {
+    pub fn is_critical(&self) -> bool {
         self.ancilliary.is_ascii_uppercase()
     }
-    fn is_public(&self) -> bool {
+    pub fn is_public(&self) -> bool {
         self.private.is_ascii_uppercase()
     }
-
-    fn is_reserved_bit_valid(&self) -> bool {
+    pub fn is_reserved_bit_valid(&self) -> bool {
         self.reserved.is_ascii_uppercase()
     }
-    fn is_valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         self.is_reserved_bit_valid()
     }
-    fn is_safe_to_copy(&self) -> bool {
+    pub fn is_safe_to_copy(&self) -> bool {
         self.safe_to_copy.is_ascii_lowercase()
     }
 }
