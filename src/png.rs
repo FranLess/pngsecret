@@ -121,6 +121,7 @@ impl Display for Png {
         )
     }
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
